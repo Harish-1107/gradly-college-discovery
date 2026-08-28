@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Institute {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  type        String
+  city        String
+  state       String
+  feesPerYear Int?
+  rating      Float?
+  overview    String?
+  nirfRank    Int?
+  nirfScore   Float?
+  nirfBand    String?
+  goScore     Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  courses     Course[]
+  cutoffs     Cutoff[]
+  reviews     Review[]
+
+  @@index([type])
+  @@index([state])
+  @@index([rating])
+  @@map("institutes")
+}
+
+model Course {
+  id          String    @id @default(cuid())
+  name        String
+  instituteId String
+  institute   Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  cutoffs     Cutoff[]
+
+  @@unique([instituteId, name])
+  @@index([instituteId])
+  @@map("courses")
+}
+
+model Cutoff {
+  id          String    @id @default(cuid())
+  instituteId String
+  courseId    String
+  quota       String
+  category    String
+  gender      String
+  year        Int
+  round       Int
+  openingRank Int
+  closingRank Int
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  institute   Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@unique([instituteId, courseId, quota, category, gender, year, round])
+  @@index([instituteId])
+  @@index([courseId])
+  @@index([quota, category, gender, year, round])
+  @@index([closingRank])
+  @@map("cutoffs")
+}
+
+model Review {
+  id             String    @id @default(cuid())
+  instituteId    String
+  reviewerName   String
+  reviewerCourse String?
+  graduationYear Int?
+  rating         Int
+  title          String
+  body           String
+  isSample       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  institute      Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@index([instituteId])
+  @@map("reviews")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
