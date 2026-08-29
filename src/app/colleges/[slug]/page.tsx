@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SaveInstituteButton } from "../../../../components/SaveInstituteButton";
 
 type Cutoff = {
   openingRank: number;
@@ -258,14 +259,19 @@ export default function CollegeDetailPage() {
                   </div>
 
                   <div>
-                    <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
-                      {college.name}
-                    </h1>
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-                      {college.overview ||
-                        "Explore courses, NIRF indicators, and JoSAA cutoff data for this institute."}
-                    </p>
-                  </div>
+  <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
+    {college.name}
+  </h1>
+
+  <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+    {college.overview ||
+      "Explore courses, NIRF indicators, and JoSAA cutoff data for this institute."}
+  </p>
+
+  <div className="mt-5">
+    <SaveInstituteButton instituteId={college.id} />
+  </div>
+</div>
                 </div>
               </div>
 

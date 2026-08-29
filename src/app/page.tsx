@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AuthNav } from "../../components/AuthNav";
 
 type College = {
   id: string;
@@ -100,16 +101,19 @@ export default function Home() {
           </Link>
 
           <div className="flex items-center gap-2 text-sm text-slate-300">
-            <Link
-              href="/predict"
-              className="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white"
-            >
-              JEE Predictor
-            </Link>
-            <span className="hidden rounded-full border border-white/10 px-4 py-2 sm:inline-flex">
-              2024 data
-            </span>
-          </div>
+  <Link
+    href="/predict"
+    className="rounded-full px-4 py-2 transition hover:bg-white/10 hover:text-white"
+  >
+    JEE Predictor
+  </Link>
+
+  <AuthNav />
+
+  <span className="hidden rounded-full border border-white/10 px-4 py-2 sm:inline-flex">
+    2024 data
+  </span>
+</div>
         </div>
       </nav>
 

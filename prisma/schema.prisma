@@ -8,9 +8,9 @@ datasource db {
 }
 
 model Institute {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
+  id          String           @id @default(cuid())
+  name        String           @unique
+  slug        String           @unique
   type        String
   city        String
   state       String
@@ -21,11 +21,12 @@ model Institute {
   nirfScore   Float?
   nirfBand    String?
   goScore     Float?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   courses     Course[]
   cutoffs     Cutoff[]
   reviews     Review[]
+  savedBy     SavedInstitute[]
 
   @@index([type])
   @@index([state])
@@ -85,13 +86,14 @@ model Review {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  email        String    @unique
-  passwordHash String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  sessions     Session[]
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  passwordHash    String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  sessions        Session[]
+  savedInstitutes SavedInstitute[]
 
   @@map("users")
 }
@@ -106,4 +108,18 @@ model Session {
   @@index([userId])
   @@index([expiresAt])
   @@map("sessions")
+}
+
+model SavedInstitute {
+  id          String   @id @default(cuid())
+  userId      String
+  instituteId String
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, instituteId])
+  @@index([userId])
+  @@index([instituteId])
 }
