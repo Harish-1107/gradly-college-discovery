@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AuthNav } from "../../components/AuthNav";
@@ -91,14 +92,26 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-white">
       <nav className="border-b border-white/10 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500 font-bold shadow-lg shadow-indigo-500/30">
-              G
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              Gradly
-            </span>
-          </Link>
+          <Link
+  href="/"
+  aria-label="Gradly home"
+  className="flex items-center gap-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-950"
+>
+  <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/10">
+    <Image
+      src="/gradly-logo.png"
+      alt=""
+      width={40}
+      height={40}
+      priority
+      className="h-12 w-12 max-w-none object-cover"
+    />
+  </span>
+
+  <span className="text-lg font-semibold tracking-tight text-white">
+    Grad<span className="text-indigo-300">ly</span>
+  </span>
+</Link>
 
           <div className="flex items-center gap-2 text-sm text-slate-300">
   <Link
