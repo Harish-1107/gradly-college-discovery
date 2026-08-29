@@ -224,7 +224,38 @@ async function main() {
   console.log(`Institutes: ${instituteIds.size}`);
   console.log(`Courses: ${courseIds.size}`);
   console.log(`Cutoff rows processed: ${inserted}`);
+
+  await prisma.institute.update({
+    where: { slug: 'nit-trichy' },
+    data: {
+      feesPerYear: 180000,
+      nirfRank: 9,
+      nirfScore: 66.88,
+      goScore: 80.0,
+    },
+  });
+
+  await prisma.institute.update({
+    where: { slug: 'nit-warangal' },
+    data: {
+      feesPerYear: 160000,
+      nirfRank: 21,
+      nirfScore: 61.72,
+      goScore: 75.28,
+    },
+  });
+
+  await prisma.institute.update({
+    where: { slug: 'nit-surathkal' },
+    data: {
+      feesPerYear: 170000,
+      nirfRank: 17,
+      nirfScore: 64.27,
+      goScore: 78.44,
+    },
+  });
 }
+
 
 main()
   .catch((error) => {
@@ -235,3 +266,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
