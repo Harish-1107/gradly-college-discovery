@@ -1,5 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
+type Chance = "LIKELY" | "TARGET" | "AMBITIOUS";
+
+type Prediction = {
+  college: {
+    id: string;
+    name: string;
+    slug: string;
+    type: string;
+    city: string;
+    state: string;
+    rating: number | null;
+    nirfRank: number | null;
+  };
+  course: {
+    id: string;
+    name: string;
+  };
+  chance: Chance;
+  chanceLabel: string;
+  reason: string;
+  previousCutoff: {
+    openingRank: number;
+    closingRank: number;
+    year: number;
+    round: number;
+    category: string;
+    gender: string;
+    quota: string;
+  };
+};
 
 const VALID_CATEGORIES = [
   "OPEN",
@@ -192,7 +224,35 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const cutoffs = await prisma.cutoff.findMany({
+    const cutoffs: Prisma.CutoffGetPayload<{
+  select: {
+    openingRank: true;
+    closingRank: true;
+    quota: true;
+    category: true;
+    gender: true;
+    year: true;
+    round: true;
+    course: {
+      select: {
+        id: true;
+        name: true;
+        institute: {
+          select: {
+            id: true;
+            name: true;
+            slug: true;
+            type: true;
+            city: true;
+            state: true;
+            rating: true;
+            nirfRank: true;
+          };
+        };
+      };
+    };
+  };
+}>[] = await prisma.cutoff.findMany({
       where: {
         year: 2024,
         round: 5,
@@ -229,57 +289,50 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const predictions = cutoffs
-      .map((cutoff) => {
-        const bucket = getPredictionBucket(rank, cutoff.closingRank);
+    const chanceOrder: Record<Chance, number> = {
+  LIKELY: 0,
+  TARGET: 1,
+  AMBITIOUS: 2,
+};
 
-        if (!bucket) {
-          return null;
-        }
+const predictions: Prediction[] = cutoffs
+  .map((cutoff): Prediction | null => {
+    const bucket = getPredictionBucket(rank, cutoff.closingRank);
 
-        return {
-          college: cutoff.course.institute,
-          course: {
-            id: cutoff.course.id,
-            name: cutoff.course.name,
-          },
-          chance: bucket,
-          chanceLabel: getChanceLabel(bucket),
-          reason: getReason(bucket, rank, cutoff.closingRank),
-          previousCutoff: {
-            openingRank: cutoff.openingRank,
-            closingRank: cutoff.closingRank,
-            year: cutoff.year,
-            round: cutoff.round,
-            category: cutoff.category,
-            gender: cutoff.gender,
-            quota: cutoff.quota,
-          },
-        };
-      })
-      .filter(
-        (
-          prediction
-        ): prediction is NonNullable<typeof prediction> => prediction !== null
-      )
-      .sort((a, b) => {
-        const chanceOrder = {
-          LIKELY: 0,
-          TARGET: 1,
-          AMBITIOUS: 2,
-        };
+    if (!bucket) {
+      return null;
+    }
 
-        const chanceDifference =
-          chanceOrder[a.chance] - chanceOrder[b.chance];
+    const chance = bucket as Chance;
 
-        if (chanceDifference !== 0) {
-          return chanceDifference;
-        }
+    return {
+      college: cutoff.course.institute,
+      course: {
+        id: cutoff.course.id,
+        name: cutoff.course.name,
+      },
+      chance,
+      chanceLabel: getChanceLabel(chance),
+      reason: getReason(chance, rank, cutoff.closingRank),
+      previousCutoff: {
+        openingRank: cutoff.openingRank,
+        closingRank: cutoff.closingRank,
+        year: cutoff.year,
+        round: cutoff.round,
+        category: cutoff.category,
+        gender: cutoff.gender,
+        quota: cutoff.quota,
+      },
+    };
+  })
+  .filter((prediction): prediction is Prediction => prediction !== null)
+  .sort(
+    (a, b) =>
+      chanceOrder[a.chance] - chanceOrder[b.chance] ||
+      a.previousCutoff.closingRank - b.previousCutoff.closingRank
+  );
+      
 
-        return (
-          a.previousCutoff.closingRank - b.previousCutoff.closingRank
-        );
-      });
 
     const groupedPredictions = {
       likely: predictions.filter(

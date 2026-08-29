@@ -1,5 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
+type ComparedCollege = Prisma.InstituteGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    slug: true;
+    type: true;
+    city: true;
+    state: true;
+    feesPerYear: true;
+    rating: true;
+    overview: true;
+    nirfRank: true;
+    nirfScore: true;
+    nirfBand: true;
+    goScore: true;
+    courses: {
+      select: {
+        id: true;
+        name: true;
+        cutoffs: {
+          select: {
+            openingRank: true;
+            closingRank: true;
+            quota: true;
+            category: true;
+            gender: true;
+            year: true;
+            round: true;
+          };
+        };
+      };
+    };
+    reviews: {
+      select: {
+        id: true;
+        reviewerName: true;
+        reviewerCourse: true;
+        graduationYear: true;
+        rating: true;
+        title: true;
+        body: true;
+        isSample: true;
+        createdAt: true;
+      };
+    };
+    _count: {
+      select: {
+        courses: true;
+        reviews: true;
+      };
+    };
+  };
+}>;
 
 const MIN_COLLEGES_TO_COMPARE = 2;
 const MAX_COLLEGES_TO_COMPARE = 3;
@@ -79,7 +134,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const colleges = await prisma.institute.findMany({
+    const colleges: ComparedCollege[] = await prisma.institute.findMany({
       where: {
         id: {
           in: ids,
@@ -173,7 +228,7 @@ export async function GET(request: NextRequest) {
 
     const orderedColleges = ids.map((id) => collegesById.get(id)!);
 
-    const normalizedColleges = orderedColleges.map((college) => {
+    const normalizedColleges = colleges.map((college: ComparedCollege) => {
       const courses = college.courses.map((course) => {
         const openGenderNeutralCutoffs = course.cutoffs.filter(
           (cutoff) =>
